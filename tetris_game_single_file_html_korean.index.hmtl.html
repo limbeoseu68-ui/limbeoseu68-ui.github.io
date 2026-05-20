@@ -1,0 +1,496 @@
+<!-- 파일 이름을 index.html 로 저장 후 실행하세요 -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Neo Tetris</title>
+  <meta name="description" content="온라인으로 즐기는 네온 스타일 테트리스 게임" />
+  <meta property="og:title" content="Neo Tetris" />
+  <meta property="og:description" content="브라우저에서 바로 플레이 가능한 테트리스 게임" />
+
+  <style>
+    .menu-screen {
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 8, 22, 0.96);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+    }
+
+    .menu-box {
+      width: 360px;
+      background: #111827;
+      border: 2px solid #22d3ee;
+      border-radius: 24px;
+      padding: 35px;
+      text-align: center;
+      box-shadow: 0 0 30px rgba(34, 211, 238, 0.5);
+    }
+
+    .menu-title {
+      font-size: 42px;
+      color: #22d3ee;
+      margin-bottom: 25px;
+      font-weight: bold;
+    }
+
+    .difficulty-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-top: 25px;
+    }
+
+    .difficulty-btn {
+      padding: 14px;
+      border: none;
+      border-radius: 14px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+      background: #0f172a;
+      color: white;
+      border: 1px solid #1f2937;
+    }
+
+    .difficulty-btn:hover {
+      transform: scale(1.03);
+      background: #22d3ee;
+      color: black;
+    }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      flex-direction: column;
+      background: #050816;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .topbar {
+      width: 100%;
+      padding: 20px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 2;
+      background: rgba(5, 8, 22, 0.85);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid #1e293b;
+    }
+
+    .logo {
+      font-size: 28px;
+      font-weight: bold;
+      color: #22d3ee;
+    }
+
+    .online-badge {
+      background: #0f172a;
+      border: 1px solid #22d3ee;
+      color: #22d3ee;
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-size: 14px;
+    }
+
+    .container {
+      display: flex;
+      gap: 30px;
+      align-items: flex-start;
+      margin-top: 90px;
+      padding: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    canvas {
+      background: #111827;
+      border: 4px solid #22d3ee;
+      box-shadow: 0 0 20px rgba(34, 211, 238, 0.7);
+    }
+
+    .panel {
+      width: 220px;
+      background: #111827;
+      border-radius: 20px;
+      padding: 20px;
+      border: 1px solid #1f2937;
+    }
+
+    .title {
+      font-size: 32px;
+      color: #22d3ee;
+      margin-bottom: 20px;
+      font-weight: bold;
+    }
+
+    .card {
+      background: #0f172a;
+      padding: 15px;
+      border-radius: 14px;
+      margin-bottom: 15px;
+    }
+
+    .label {
+      color: #94a3b8;
+      font-size: 14px;
+      margin-bottom: 5px;
+    }
+
+    .value {
+      font-size: 28px;
+      color: #22d3ee;
+      font-weight: bold;
+    }
+
+    .controls {
+      margin-top: 20px;
+      color: #cbd5e1;
+      line-height: 1.8;
+      font-size: 14px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 12px;
+      background: #22d3ee;
+      color: black;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+
+    button:hover {
+      background: #67e8f9;
+    }
+
+    .footer {
+      margin-top: 30px;
+      color: #64748b;
+      font-size: 14px;
+      text-align: center;
+      padding-bottom: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .panel {
+        width: 300px;
+      }
+
+      canvas {
+        width: 300px;
+        height: 600px;
+      }
+
+      .menu-box {
+        width: 90%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="menu-screen" id="menuScreen">
+    <div class="menu-box">
+      <div class="menu-title">TETRIS</div>
+      <p>난이도를 선택하세요</p>
+
+      <div class="difficulty-buttons">
+        <button class="difficulty-btn" onclick="startGame(700)">
+          EASY
+        </button>
+
+        <button class="difficulty-btn" onclick="startGame(500)">
+          NORMAL
+        </button>
+
+        <button class="difficulty-btn" onclick="startGame(250)">
+          HARD
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="topbar">
+    <div class="logo">NEO TETRIS</div>
+    <div class="online-badge">ONLINE GAME</div>
+  </div>
+
+  <div class="container">
+    <canvas id="game" width="300" height="600"></canvas>
+
+    <div class="panel">
+      <div class="title">TETRIS</div>
+
+      <div class="card">
+        <div class="label">SCORE</div>
+        <div class="value" id="score">0</div>
+      </div>
+
+      <div class="card">
+        <div class="label">LINES</div>
+        <div class="value" id="lines">0</div>
+      </div>
+
+      <div class="card">
+        <div class="label">LEVEL</div>
+        <div class="value" id="level">1</div>
+      </div>
+
+      <button onclick="restartGame()">다시 시작</button>
+
+      <div class="controls">
+        ← → : 이동<br>
+        ↓ : 빠르게 내리기<br>
+        ↑ : 회전
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    © 2026 Neo Tetris • 브라우저에서 바로 플레이 가능
+  </div>
+
+  <script>
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+
+    const ROWS = 20;
+    const COLS = 10;
+    const SIZE = 30;
+
+    const scoreEl = document.getElementById('score');
+    const linesEl = document.getElementById('lines');
+    const levelEl = document.getElementById('level');
+
+    let board = [];
+    let gameInterval;
+    let gameSpeed = 500;
+    let score = 0;
+    let lines = 0;
+    let level = 1;
+
+    const pieces = [
+      [[1,1,1],[0,1,0]],
+      [[1,1],[1,1]],
+      [[1,1,0],[0,1,1]],
+      [[0,1,1],[1,1,0]],
+      [[1,1,1,1]],
+      [[1,0,0],[1,1,1]],
+      [[0,0,1],[1,1,1]]
+    ];
+
+    function createBoard() {
+      board = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+    }
+
+    function randomPiece() {
+      const shape = pieces[Math.floor(Math.random() * pieces.length)];
+      return {
+        x: 3,
+        y: 0,
+        shape
+      };
+    }
+
+    let piece = randomPiece();
+
+    function drawCell(x, y, color='#22d3ee') {
+      ctx.fillStyle = color;
+      ctx.fillRect(x * SIZE, y * SIZE, SIZE - 1, SIZE - 1);
+    }
+
+    function drawBoard() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for(let y = 0; y < ROWS; y++) {
+        for(let x = 0; x < COLS; x++) {
+          if(board[y][x]) {
+            drawCell(x, y);
+          } else {
+            drawCell(x, y, '#1e293b');
+          }
+        }
+      }
+    }
+
+    function drawPiece() {
+      piece.shape.forEach((row, y) => {
+        row.forEach((value, x) => {
+          if(value) {
+            drawCell(piece.x + x, piece.y + y);
+          }
+        });
+      });
+    }
+
+    function collision() {
+      for(let y = 0; y < piece.shape.length; y++) {
+        for(let x = 0; x < piece.shape[y].length; x++) {
+          if(piece.shape[y][x]) {
+            let newX = piece.x + x;
+            let newY = piece.y + y;
+
+            if(newX < 0 || newX >= COLS || newY >= ROWS) {
+              return true;
+            }
+
+            if(newY >= 0 && board[newY][newX]) {
+              return true;
+            }
+          }
+        }
+      }
+      return false;
+    }
+
+    function merge() {
+      piece.shape.forEach((row, y) => {
+        row.forEach((value, x) => {
+          if(value) {
+            board[piece.y + y][piece.x + x] = 1;
+          }
+        });
+      });
+    }
+
+    function clearLines() {
+      let cleared = 0;
+
+      outer:
+      for(let y = ROWS - 1; y >= 0; y--) {
+        for(let x = 0; x < COLS; x++) {
+          if(board[y][x] === 0) {
+            continue outer;
+          }
+        }
+
+        board.splice(y, 1);
+        board.unshift(Array(COLS).fill(0));
+        cleared++;
+        y++;
+      }
+
+      if(cleared > 0) {
+        score += cleared * 100;
+        lines += cleared;
+        level = Math.floor(lines / 10) + 1;
+
+        scoreEl.textContent = score;
+        linesEl.textContent = lines;
+        levelEl.textContent = level;
+      }
+    }
+
+    function rotate(shape) {
+      return shape[0].map((_, index) =>
+        shape.map(row => row[index]).reverse()
+      );
+    }
+
+    document.addEventListener('keydown', e => {
+      if(e.key === 'ArrowLeft') {
+        piece.x--;
+        if(collision()) piece.x++;
+      }
+
+      if(e.key === 'ArrowRight') {
+        piece.x++;
+        if(collision()) piece.x--;
+      }
+
+      if(e.key === 'ArrowDown') {
+        piece.y++;
+        if(collision()) {
+          piece.y--;
+        }
+      }
+
+      if(e.key === 'ArrowUp') {
+        const rotated = rotate(piece.shape);
+        const oldShape = piece.shape;
+        piece.shape = rotated;
+
+        if(collision()) {
+          piece.shape = oldShape;
+        }
+      }
+    });
+
+    function update() {
+      piece.y++;
+
+      if(collision()) {
+        piece.y--;
+        merge();
+        clearLines();
+        piece = randomPiece();
+
+        if(collision()) {
+          alert('게임 오버!');
+          createBoard();
+          score = 0;
+          lines = 0;
+          level = 1;
+          scoreEl.textContent = 0;
+          linesEl.textContent = 0;
+          levelEl.textContent = 1;
+        }
+      }
+
+      drawBoard();
+      drawPiece();
+    }
+
+    function startGame(speed) {
+      gameSpeed = speed;
+      document.getElementById('menuScreen').style.display = 'none';
+
+      restartGame();
+
+      if(gameInterval) {
+        clearInterval(gameInterval);
+      }
+
+      gameInterval = setInterval(update, gameSpeed);
+    }
+
+    function restartGame() {
+      createBoard();
+      score = 0;
+      lines = 0;
+      level = 1;
+      scoreEl.textContent = 0;
+      linesEl.textContent = 0;
+      levelEl.textContent = 1;
+      piece = randomPiece();
+    }
+
+    createBoard();
+  </script>
+</body>
+</html>
